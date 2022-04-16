@@ -6,7 +6,7 @@ import kaneMenicou.trafficController.lightTimer.LightTimer;
 import java.util.ArrayList;
 import java.util.List;
 
-abstract public class LightSystem {
+abstract public class StatefulLightSystem {
     protected final List<TrafficLight> lights;
     protected final List<Interactor> interactors = new ArrayList<>();
 
@@ -16,7 +16,7 @@ abstract public class LightSystem {
 
     abstract protected void onExpiredTimerTick(List<LightTimer> timers);
 
-    public LightSystem(List<TrafficLight> lights) {
+    public StatefulLightSystem(List<TrafficLight> lights) {
         this.lights = lights;
     }
 

@@ -6,8 +6,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-class SoulOrientedLightSystemTest {
+class StatefulSoulOrientedLightSystemTest {
 
     @Test
     public void itWillSetAllLightsToWaitIfNoInteractors() {
@@ -29,7 +32,7 @@ class SoulOrientedLightSystemTest {
         TrafficLight west = new TrafficLight(conflicts, TrafficLight.Types.Pedestrian);
         lights.add(west);
 
-        SoulOrientedLightSystem system = new SoulOrientedLightSystem(lights);
+        StatefulSoulOrientedLightSystem system = new StatefulSoulOrientedLightSystem(lights);
 
         Car car = new Car(north);
         system.addInteractor(car);
@@ -73,7 +76,7 @@ class SoulOrientedLightSystemTest {
         TrafficLight west = new TrafficLight(conflicts, TrafficLight.Types.Pedestrian);
         lights.add(west);
 
-        SoulOrientedLightSystem system = new SoulOrientedLightSystem(lights);
+        StatefulSoulOrientedLightSystem system = new StatefulSoulOrientedLightSystem(lights);
 
         system.addInteractor(new Car(north));
 
@@ -106,7 +109,7 @@ class SoulOrientedLightSystemTest {
         TrafficLight west = new TrafficLight(conflicts, TrafficLight.Types.Pedestrian);
         lights.add(west);
 
-        SoulOrientedLightSystem system = new SoulOrientedLightSystem(lights);
+        StatefulSoulOrientedLightSystem system = new StatefulSoulOrientedLightSystem(lights);
 
         system.addInteractor(new Pedestrian(east));
 
@@ -139,7 +142,7 @@ class SoulOrientedLightSystemTest {
         TrafficLight west = new TrafficLight(conflicts, TrafficLight.Types.Pedestrian);
         lights.add(west);
 
-        SoulOrientedLightSystem system = new SoulOrientedLightSystem(lights);
+        StatefulSoulOrientedLightSystem system = new StatefulSoulOrientedLightSystem(lights);
 
         Pedestrian pedestrian = new Pedestrian(east);
         system.addInteractor(pedestrian);
@@ -184,7 +187,7 @@ class SoulOrientedLightSystemTest {
         TrafficLight west = new TrafficLight(conflicts, TrafficLight.Types.Pedestrian);
         lights.add(west);
 
-        SoulOrientedLightSystem system = new SoulOrientedLightSystem(lights);
+        StatefulSoulOrientedLightSystem system = new StatefulSoulOrientedLightSystem(lights);
 
         Pedestrian pedestrian1 = new Pedestrian(east);
         system.addInteractor(pedestrian1);
@@ -241,7 +244,7 @@ class SoulOrientedLightSystemTest {
         TrafficLight west = new TrafficLight(conflicts, TrafficLight.Types.Pedestrian);
         lights.add(west);
 
-        SoulOrientedLightSystem system = new SoulOrientedLightSystem(lights);
+        StatefulSoulOrientedLightSystem system = new StatefulSoulOrientedLightSystem(lights);
 
         Pedestrian pedestrian1 = new Pedestrian(east);
         system.addInteractor(pedestrian1);
@@ -300,7 +303,7 @@ class SoulOrientedLightSystemTest {
         TrafficLight west = new TrafficLight(conflicts, TrafficLight.Types.Pedestrian);
         lights.add(west);
 
-        SoulOrientedLightSystem system = new SoulOrientedLightSystem(lights);
+        StatefulSoulOrientedLightSystem system = new StatefulSoulOrientedLightSystem(lights);
 
         Pedestrian pedestrian1 = new Pedestrian(east);
         system.addInteractor(pedestrian1);
@@ -405,5 +408,87 @@ class SoulOrientedLightSystemTest {
 
         Assertions.assertSame(east.getState(), TrafficLight.State.Wait);
         Assertions.assertSame(west.getState(), TrafficLight.State.Wait);
+    }
+
+    @Test
+    public void itWillCalculateTheBestPhaseWhenThereAreDivergentOptions() {
+        TrafficLight northToEast = new TrafficLight(new ArrayList<>(), TrafficLight.Types.Vehicle);
+        TrafficLight northToSouth = new TrafficLight(new ArrayList<>(), TrafficLight.Types.Vehicle);
+        TrafficLight eastToSouth = new TrafficLight(
+                new ArrayList<>(Collections.singletonList(northToSouth)),
+                TrafficLight.Types.Vehicle
+        );
+        TrafficLight southToNorth = new TrafficLight(
+                new ArrayList<>(),
+                TrafficLight.Types.Vehicle
+        );
+        TrafficLight southToEast = new TrafficLight(
+                new ArrayList<>(Arrays.asList(northToSouth, northToEast)),
+                TrafficLight.Types.Vehicle
+        );
+        TrafficLight eastToNorth = new TrafficLight(
+                new ArrayList<>(Arrays.asList(northToSouth, southToNorth, northToEast)),
+                TrafficLight.Types.Vehicle
+        );
+        List<TrafficLight> lights = Arrays.asList(northToEast, northToSouth, eastToNorth, eastToSouth, southToNorth, southToEast);
+
+        StatefulSoulOrientedLightSystem system = new StatefulSoulOrientedLightSystem(lights);
+
+        Car car1 = new Car(southToNorth);
+        Car car2 = new Car(southToEast);
+
+        system.addInteractor(car1);
+        system.addInteractor(car2);
+
+        system.tick();
+
+        Assertions.assertSame(TrafficLight.State.Go, eastToSouth.getState());
+        Assertions.assertSame(TrafficLight.State.Go, southToNorth.getState());
+        Assertions.assertSame(TrafficLight.State.Go, southToEast.getState());
+
+        Assertions.assertSame(TrafficLight.State.Wait, eastToNorth.getState());
+        Assertions.assertSame(TrafficLight.State.Wait, northToSouth.getState());
+        Assertions.assertSame(TrafficLight.State.Wait, northToEast.getState());
+    }
+
+    @Test
+    public void itWillCalculateTheBestPhaseWhenThereAreDivergentOptionsWithAlternateOrdering() {
+        TrafficLight northToEast = new TrafficLight(new ArrayList<>(), TrafficLight.Types.Vehicle);
+        TrafficLight northToSouth = new TrafficLight(new ArrayList<>(), TrafficLight.Types.Vehicle);
+        TrafficLight eastToNorth = new TrafficLight(
+                new ArrayList<>(Collections.singletonList(northToSouth)),
+                TrafficLight.Types.Vehicle
+        );
+        TrafficLight eastToSouth = new TrafficLight(
+                new ArrayList<>(Collections.singletonList(northToSouth)),
+                TrafficLight.Types.Vehicle
+        );
+        TrafficLight southToNorth = new TrafficLight(
+                new ArrayList<>(Collections.singletonList(eastToNorth)),
+                TrafficLight.Types.Vehicle
+        );
+        TrafficLight southToEast = new TrafficLight(
+                new ArrayList<>(Arrays.asList(northToSouth, northToEast, eastToNorth)),
+                TrafficLight.Types.Vehicle
+        );
+        List<TrafficLight> lights = Arrays.asList(northToEast, northToSouth, eastToNorth, eastToSouth, southToNorth, southToEast);
+
+        StatefulSoulOrientedLightSystem system = new StatefulSoulOrientedLightSystem(lights);
+
+        Car car1 = new Car(southToNorth);
+        Car car2 = new Car(northToSouth);
+
+        system.addInteractor(car1);
+        system.addInteractor(car2);
+
+        system.tick();
+
+        Assertions.assertSame(TrafficLight.State.Wait, eastToSouth.getState());
+        Assertions.assertSame(TrafficLight.State.Wait, southToEast.getState());
+        Assertions.assertSame(TrafficLight.State.Wait, eastToNorth.getState());
+
+        Assertions.assertSame(TrafficLight.State.Go, southToNorth.getState());
+        Assertions.assertSame(TrafficLight.State.Go, northToSouth.getState());
+        Assertions.assertSame(TrafficLight.State.Go, northToEast.getState());
     }
 }

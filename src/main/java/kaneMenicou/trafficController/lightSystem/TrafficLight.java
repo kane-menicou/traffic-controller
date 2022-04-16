@@ -1,5 +1,6 @@
 package kaneMenicou.trafficController.lightSystem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 final public class TrafficLight {
@@ -15,7 +16,7 @@ final public class TrafficLight {
     private final Types type;
     private State state;
 
-    public TrafficLight(List<TrafficLight> conflicts, Types type) {
+    public TrafficLight(ArrayList<TrafficLight> conflicts, Types type) {
         this.conflicts = conflicts;
         this.type = type;
         state = State.Wait;

@@ -1,15 +1,15 @@
 package kaneMenicou.trafficController.lightTimer;
 
 import kaneMenicou.trafficController.interactor.Interactor;
-import kaneMenicou.trafficController.lightSystem.LightSystem;
+import kaneMenicou.trafficController.lightSystem.StatefulLightSystem;
 import kaneMenicou.trafficController.lightSystem.TrafficLight;
 
 final public class WaitingInteractorLightTimer implements LightTimer {
-    private final LightSystem system;
+    private final StatefulLightSystem system;
     private final Interactor interactor;
     private int ticks = 0;
 
-    public WaitingInteractorLightTimer(LightSystem system, Interactor interactor) {
+    public WaitingInteractorLightTimer(StatefulLightSystem system, Interactor interactor) {
         this.system = system;
         this.interactor = interactor;
     }
