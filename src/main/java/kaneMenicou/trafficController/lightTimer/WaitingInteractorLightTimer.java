@@ -26,7 +26,6 @@ final public class WaitingInteractorLightTimer implements LightTimer {
         return interactor.getWaitingAtLight();
     }
 
-    @Override
     public boolean isApplicable() {
         return system.hasInteractor(interactor);
     }
